@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MihályVerse RPG</title>
+  <style>
+    body { margin: 0; background: #222; color: #fff; font-family: sans-serif; }
+    canvas { display: block; margin: auto; background: #444; }
+    #hud, #controls {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;
+    }
+    #startBtn {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px; font-size: 24px;
+      background: #0f0; border: none; cursor: pointer;
+    }
+    #characterSelect, #timeSelect {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    💰 Pénz: <span id="money">100</span> |
+    🧍 Karakter: <span id="charName">Mihály</span> |
+    🌙 Napszak: <span id="timeOfDay">Reggel</span>
+  </div>
+  <div id="controls">
+    <label>Karakter:
+      <select id="characterSelect">
+        <option value="Mihály">Mihály</option>
+        <option value="Béla">Béla</option>
+        <option value="Jolán">Jolán</option>
+      </select>
+    </label>
+    <br>
+    <label>Napszak:
+      <select id="timeSelect">
+        <option value="Reggel">Reggel</option>
+        <option value="Dél">Dél</option>
+        <option value="Este">Este</option>
+        <option value="Éjjel">Éjjel</option>
+      </select>
+    </label>
+  </div>
+  <button id="startBtn">Start</button>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('startBtn');
+    const moneyDisplay = document.getElementById('money');
+    const charNameDisplay = document.getElementById('charName');
+    const timeDisplay = document.getElementById('timeOfDay');
+    const characterSelect = document.getElementById('characterSelect');
+    const timeSelect = document.getElementById('timeSelect');
+
+    let gameStarted = false;
+    let money = 100;
+    let character = "Mihály";
+    let timeOfDay = "Reggel";
+
+    const player = { x: 400, y: 300, size: 20, color: 'lime' };
+    const npc = { x: 150, y: 150, size: 20, color: 'orange', message: "Szia Mihály, ma is meló van?" };
+    const shop = { x: 600, y: 400, size: 30, color: 'blue' };
+    const factory = { x: 100, y: 400, size: 40, color: 'gray' };
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Háttér napszak szerint
+      ctx.fillStyle = timeOfDay === "Reggel" ? "#555" :
+                      timeOfDay === "Dél" ? "#888" :
+                      timeOfDay === "Este" ? "#333" : "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // NPC
+      ctx.fillStyle = npc.color;
+      ctx.fillRect(npc.x, npc.y, npc.size, npc.size);
+
+      // Bolt
+      ctx.fillStyle = shop.color;
+      ctx.fillRect(shop.x, shop.y, shop.size, shop.size);
+
+      // Gyár
+      ctx.fillStyle = factory.color;
+      ctx.fillRect(factory.x, factory.y, factory.size, factory.size);
+
+      // Játékos
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.size, player.size);
+    }
+
+    function update() {
+      draw();
+      if (gameStarted) requestAnimationFrame(update);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!gameStarted) return;
+      if (e.key === 'ArrowUp' || e.key === 'w') player.y -= 10;
+      if (e.key === 'ArrowDown' || e.key === 's') player.y += 10;
+      if (e.key === 'ArrowLeft' || e.key === 'a') player.x -= 10;
+      if (e.key === 'ArrowRight' || e.key === 'd') player.x += 10;
+
+      // NPC interakció
+      if (Math.abs(player.x - npc.x) < 30 && Math.abs(player.y - npc.y) < 30) {
+        alert(npc.message);
+      }
+
+      // Bolt interakció
+      if (Math.abs(player.x - shop.x) < 30 && Math.abs(player.y - shop.y) < 30) {
+        if (money >= 30) {
+          money -= 30;
+          alert("Vettél egy kolbászt! 🌭");
+        } else {
+          alert("Nincs elég pénzed!");
+        }
+        moneyDisplay.textContent = money;
+      }
+
+      // Gyár interakció
+      if (Math.abs(player.x - factory.x) < 40 && Math.abs(player.y - factory.y) < 40) {
+        money += 50;
+        alert("Dolgoztál a gyárban! 💼 +50 pénz");
+        moneyDisplay.textContent = money;
+      }
+    });
+
+    startBtn.onclick = () => {
+      gameStarted = true;
+      startBtn.style.display = 'none';
+      update();
+    };
+
+    characterSelect.onchange = () => {
+      character = characterSelect.value;
+      charNameDisplay.textContent = character;
+      npc.message = `Szia ${character}, ma is meló van?`;
+    };
+
+    timeSelect.onchange = () => {
+      timeOfDay = timeSelect.value;
+      timeDisplay.textContent = timeOfDay;
+    };
+  </script>
+</body>
+</html>
